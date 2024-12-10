@@ -12,10 +12,6 @@ const Index = () => {
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  const handleRestaurantClick = (restaurant: Restaurant) => {
-    setSelectedRestaurant(restaurant);
-  };
-
   const filteredRestaurants = restaurants.filter((restaurant) =>
     restaurant.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -53,7 +49,6 @@ const Index = () => {
             <RestaurantCard
               key={restaurant.id}
               restaurant={restaurant}
-              onClick={handleRestaurantClick}
             />
           ))}
         </div>
