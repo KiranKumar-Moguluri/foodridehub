@@ -16,4 +16,8 @@ export interface Restaurant {
   deliveryTime: string;
   minimumOrder: number;
   menu: MenuItem[];
+  location: {
+    address: string;
+    distance: string;
+  };
 }

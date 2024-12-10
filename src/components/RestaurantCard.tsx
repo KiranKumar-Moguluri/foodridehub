@@ -1,5 +1,6 @@
 import { Restaurant } from "../types/restaurant";
-import { Star } from "lucide-react";
+import { Star, MapPin, Car } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -26,10 +27,26 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
           </div>
         </div>
         <p className="text-gray-600 text-sm mb-2">{restaurant.description}</p>
-        <div className="flex justify-between items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm text-gray-500 mb-2">
+          <MapPin className="w-4 h-4 mr-1" />
+          <span>{restaurant.location.distance} away</span>
+        </div>
+        <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
           <span>{restaurant.deliveryTime}</span>
           <span>Min. ${restaurant.minimumOrder}</span>
         </div>
+        <Button
+          variant="secondary"
+          className="w-full flex items-center justify-center gap-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            // This will be implemented later for ride booking
+            console.log("Book ride to", restaurant.location.address);
+          }}
+        >
+          <Car className="w-4 h-4" />
+          Book Ride Here
+        </Button>
       </div>
     </div>
   );

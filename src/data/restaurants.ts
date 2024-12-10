@@ -9,6 +9,10 @@ export const restaurants: Restaurant[] = [
     rating: 4.5,
     deliveryTime: "20-30 min",
     minimumOrder: 15,
+    location: {
+      address: "123 Main St, Downtown",
+      distance: "1.2 miles"
+    },
     menu: [
       {
         id: "1",
@@ -36,6 +40,10 @@ export const restaurants: Restaurant[] = [
     rating: 4.8,
     deliveryTime: "25-35 min",
     minimumOrder: 20,
+    location: {
+      address: "456 Oak Ave, Westside",
+      distance: "0.8 miles"
+    },
     menu: [
       {
         id: "3",
