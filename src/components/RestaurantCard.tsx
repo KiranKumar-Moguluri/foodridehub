@@ -1,17 +1,19 @@
 import { Restaurant } from "../types/restaurant";
 import { Star, MapPin, Car } from "lucide-react";
 import { Button } from "./ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
-  onClick: (restaurant: Restaurant) => void;
 }
 
-export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => {
+export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
+  const navigate = useNavigate();
+
   return (
     <div
       className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
-      onClick={() => onClick(restaurant)}
+      onClick={() => navigate(`/restaurant/${restaurant.id}`)}
     >
       <img
         src={restaurant.image}
