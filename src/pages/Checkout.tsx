@@ -4,34 +4,16 @@ import { Button } from "@/components/ui/button";
 import { LocationPicker } from "@/components/LocationPicker";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { PaymentForm } from "@/components/PaymentForm";
 
 const Checkout = () => {
-  const { items, total, clearCart } = useCart();
+  const { items, total } = useCart();
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleLocationSelect = (location: string) => {
     setDeliveryLocation(location);
-  };
-
-  const handlePayment = async () => {
-    if (!deliveryLocation) {
-      toast({
-        title: "Error",
-        description: "Please select a delivery location",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Here we would integrate with a payment gateway
-    toast({
-      title: "Order Placed",
-      description: "Your order has been placed successfully!",
-    });
-    clearCart();
-    navigate("/");
   };
 
   if (items.length === 0) {
@@ -83,15 +65,17 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-        <div>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handlePayment}
-            disabled={!deliveryLocation}
-          >
-            Pay ${total.toFixed(2)}
-          </Button>
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold">Payment Details</h2>
+          {deliveryLocation ? (
+            <PaymentForm />
+          ) : (
+            <div className="text-center p-4 bg-muted rounded-lg">
+              <p className="text-muted-foreground">
+                Please select a delivery location first
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
