@@ -3,6 +3,10 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { MapPin, Car, Star } from "lucide-react";
 import { useToast } from "./ui/use-toast";
+import { useCart } from "../contexts/CartContext";
+import { Cart } from "./Cart";
+import { LocationPicker } from "./LocationPicker";
+import { useState } from "react";
 
 interface RestaurantDetailProps {
   restaurant: Restaurant;
@@ -10,26 +14,41 @@ interface RestaurantDetailProps {
 
 export const RestaurantDetail = ({ restaurant }: RestaurantDetailProps) => {
   const { toast } = useToast();
+  const { addItem } = useCart();
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   const handleAddToCart = (itemId: string) => {
-    // This will be implemented later with cart functionality
-    toast({
-      title: "Added to cart",
-      description: "This item has been added to your cart",
-    });
+    const item = restaurant.menu.find((i) => i.id === itemId);
+    if (item) {
+      addItem(item);
+      toast({
+        title: "Added to cart",
+        description: "This item has been added to your cart",
+      });
+    }
   };
 
   const handleBookRide = () => {
+    if (!selectedLocation) {
+      toast({
+        title: "Select Location",
+        description: "Please select your location first",
+        variant: "destructive",
+      });
+      return;
+    }
     toast({
       title: "Ride booking",
-      description: `Booking ride to ${restaurant.location.address}`,
+      description: `Booking ride from ${selectedLocation} to ${restaurant.location.address}`,
     });
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-end mb-4">
+        <Cart />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Restaurant Info */}
         <div>
           <img
             src={restaurant.image}
@@ -45,20 +64,28 @@ export const RestaurantDetail = ({ restaurant }: RestaurantDetailProps) => {
             </div>
             <div className="flex items-center">
               <MapPin className="w-4 h-4 text-gray-500 mr-1" />
-              <span className="text-gray-500">{restaurant.location.distance}</span>
+              <span className="text-gray-500">
+                {restaurant.location.distance}
+              </span>
             </div>
           </div>
-          <Button
-            variant="secondary"
-            className="w-full md:w-auto flex items-center justify-center gap-2"
-            onClick={handleBookRide}
-          >
-            <Car className="w-4 h-4" />
-            Book Ride Here
-          </Button>
+          <div className="space-y-4">
+            <LocationPicker
+              onLocationSelect={setSelectedLocation}
+              defaultLocation={selectedLocation}
+            />
+            <Button
+              variant="secondary"
+              className="w-full flex items-center justify-center gap-2"
+              onClick={handleBookRide}
+              disabled={!selectedLocation}
+            >
+              <Car className="w-4 h-4" />
+              Book Ride Here
+            </Button>
+          </div>
         </div>
 
-        {/* Menu Items */}
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold mb-6">Menu</h2>
           {restaurant.menu.map((item) => (
