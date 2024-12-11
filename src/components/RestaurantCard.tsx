@@ -2,6 +2,9 @@ import { Restaurant } from "../types/restaurant";
 import { Star, MapPin, Car } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { LocationPicker } from "./LocationPicker";
+import { useToast } from "./ui/use-toast";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -9,6 +12,24 @@ interface RestaurantCardProps {
 
 export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [selectedLocation, setSelectedLocation] = useState("");
+
+  const handleBookRide = () => {
+    if (!selectedLocation) {
+      toast({
+        title: "Select Location",
+        description: "Please select your location first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Ride Booked!",
+      description: `Your ride from ${selectedLocation} to ${restaurant.location.address} has been booked.`,
+    });
+  };
 
   return (
     <div
@@ -37,18 +58,21 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
           <span>{restaurant.deliveryTime}</span>
           <span>Min. ${restaurant.minimumOrder}</span>
         </div>
-        <Button
-          variant="secondary"
-          className="w-full flex items-center justify-center gap-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            // This will be implemented later for ride booking
-            console.log("Book ride to", restaurant.location.address);
-          }}
-        >
-          <Car className="w-4 h-4" />
-          Book Ride Here
-        </Button>
+        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+          <LocationPicker
+            onLocationSelect={setSelectedLocation}
+            defaultLocation={selectedLocation}
+          />
+          <Button
+            variant="secondary"
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleBookRide}
+            disabled={!selectedLocation}
+          >
+            <Car className="w-4 h-4" />
+            Book Ride Here
+          </Button>
+        </div>
       </div>
     </div>
   );
