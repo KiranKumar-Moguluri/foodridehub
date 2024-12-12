@@ -8,8 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "./ui/dialog";
 import { useToast } from "./ui/use-toast";
+import { Input } from "./ui/input";
 
 interface LocationPickerProps {
   onLocationSelect: (location: string) => void;
@@ -22,6 +24,8 @@ export const LocationPicker = ({
 }: LocationPickerProps) => {
   const [location, setLocation] = useState(defaultLocation || "");
   const [isOpen, setIsOpen] = useState(false);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState("");
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState<string | null>(null);
 
@@ -30,20 +34,33 @@ export const LocationPicker = ({
     if (key) {
       setApiKey(key);
     } else {
-      console.warn("Google Maps API key not found in localStorage");
-      toast({
-        title: "Configuration Required",
-        description: "Please set your Google Maps API key in localStorage",
-        variant: "destructive",
-      });
+      setShowApiKeyInput(true);
     }
-  }, [toast]);
+  }, []);
 
   const handleLocationSelect = (selectedOption: any) => {
     const selectedLocation = selectedOption.label;
     setLocation(selectedLocation);
     onLocationSelect(selectedLocation);
     setIsOpen(false);
+  };
+
+  const handleSaveApiKey = () => {
+    if (apiKeyInput.trim()) {
+      localStorage.setItem("GOOGLE_MAPS_API_KEY", apiKeyInput.trim());
+      setApiKey(apiKeyInput.trim());
+      setShowApiKeyInput(false);
+      toast({
+        title: "API Key Saved",
+        description: "Your Google Maps API key has been saved successfully.",
+      });
+    } else {
+      toast({
+        title: "Invalid API Key",
+        description: "Please enter a valid Google Maps API key.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -57,9 +74,36 @@ export const LocationPicker = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Enter Your Location</DialogTitle>
+          {showApiKeyInput && (
+            <DialogDescription>
+              Please enter your Google Maps API key to enable location search.
+              You can get one from the{" "}
+              <a
+                href="https://console.cloud.google.com/google/maps-apis/credentials"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Google Cloud Console
+              </a>
+              .
+            </DialogDescription>
+          )}
         </DialogHeader>
         <div className="space-y-4">
-          {apiKey ? (
+          {showApiKeyInput ? (
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder="Enter your Google Maps API key"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+              />
+              <Button onClick={handleSaveApiKey} className="w-full">
+                Save API Key
+              </Button>
+            </div>
+          ) : apiKey ? (
             <GooglePlacesAutocomplete
               apiKey={apiKey}
               selectProps={{
@@ -71,7 +115,7 @@ export const LocationPicker = ({
             />
           ) : (
             <div className="text-center text-sm text-muted-foreground">
-              Please set your Google Maps API key in localStorage
+              Loading location search...
             </div>
           )}
         </div>
