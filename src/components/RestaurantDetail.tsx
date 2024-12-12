@@ -6,6 +6,7 @@ import { useToast } from "./ui/use-toast";
 import { useCart } from "../contexts/CartContext";
 import { Cart } from "./Cart";
 import { LocationPicker } from "./LocationPicker";
+import { RideBooking } from "./RideBooking";
 import { useState } from "react";
 
 interface RestaurantDetailProps {
@@ -74,15 +75,10 @@ export const RestaurantDetail = ({ restaurant }: RestaurantDetailProps) => {
               onLocationSelect={setSelectedLocation}
               defaultLocation={selectedLocation}
             />
-            <Button
-              variant="secondary"
-              className="w-full flex items-center justify-center gap-2"
-              onClick={handleBookRide}
-              disabled={!selectedLocation}
-            >
-              <Car className="w-4 h-4" />
-              Book Ride Here
-            </Button>
+            <RideBooking 
+              distance={restaurant.location.distance}
+              onBook={handleBookRide}
+            />
           </div>
         </div>
 

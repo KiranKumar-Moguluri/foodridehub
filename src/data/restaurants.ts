@@ -63,4 +63,98 @@ export const restaurants: Restaurant[] = [
       },
     ],
   },
+  {
+    id: "3",
+    name: "Sushi Master",
+    description: "Fresh and authentic Japanese sushi and sashimi",
+    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c",
+    rating: 4.9,
+    deliveryTime: "30-40 min",
+    minimumOrder: 25,
+    location: {
+      address: "789 Sakura St, Eastside",
+      distance: "1.5 miles"
+    },
+    menu: [
+      {
+        id: "5",
+        name: "California Roll",
+        description: "Crab, avocado, and cucumber roll",
+        price: 12.99,
+        image: "/placeholder.svg",
+        category: "Sushi Rolls",
+      },
+      {
+        id: "6",
+        name: "Salmon Nigiri",
+        description: "Fresh salmon over seasoned rice",
+        price: 8.99,
+        image: "/placeholder.svg",
+        category: "Nigiri",
+      },
+    ],
+  },
+  {
+    id: "4",
+    name: "Taco Fiesta",
+    description: "Authentic Mexican street tacos and more",
+    image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47",
+    rating: 4.7,
+    deliveryTime: "15-25 min",
+    minimumOrder: 12,
+    location: {
+      address: "321 Salsa Ave, Downtown",
+      distance: "0.5 miles"
+    },
+    menu: [
+      {
+        id: "7",
+        name: "Street Tacos Trio",
+        description: "Three authentic street tacos with your choice of meat",
+        price: 10.99,
+        image: "/placeholder.svg",
+        category: "Tacos",
+      },
+      {
+        id: "8",
+        name: "Guacamole & Chips",
+        description: "Fresh made guacamole with crispy tortilla chips",
+        price: 7.99,
+        image: "/placeholder.svg",
+        category: "Sides",
+      },
+    ],
+  },
 ];
+
+export const carTypes = [
+  {
+    id: "economy",
+    name: "Economy",
+    basePrice: 10,
+    pricePerMile: 2,
+    image: "/placeholder.svg",
+  },
+  {
+    id: "comfort",
+    name: "Comfort",
+    basePrice: 15,
+    pricePerMile: 3,
+    image: "/placeholder.svg",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    basePrice: 25,
+    pricePerMile: 4,
+    image: "/placeholder.svg",
+  },
+];
+
+export const calculateRidePrice = (carType: string, distance: string) => {
+  const car = carTypes.find((c) => c.id === carType);
+  if (!car) return 0;
+  
+  const numericDistance = parseFloat(distance.replace(/[^0-9.]/g, ''));
+  return car.basePrice + (car.pricePerMile * numericDistance);
+};

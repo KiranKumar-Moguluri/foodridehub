@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { useToast } from "./ui/use-toast";
+import { RideBooking } from "./RideBooking";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -25,9 +26,8 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
       return;
     }
     
-    toast({
-      title: "Ride Booked!",
-      description: `Your ride from ${selectedLocation} to ${restaurant.location.address} has been booked.`,
+    navigate(`/restaurant/${restaurant.id}`, {
+      state: { selectedLocation }
     });
   };
 
@@ -63,15 +63,10 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
             onLocationSelect={setSelectedLocation}
             defaultLocation={selectedLocation}
           />
-          <Button
-            variant="secondary"
-            className="w-full flex items-center justify-center gap-2"
-            onClick={handleBookRide}
-            disabled={!selectedLocation}
-          >
-            <Car className="w-4 h-4" />
-            Book Ride Here
-          </Button>
+          <RideBooking 
+            distance={restaurant.location.distance}
+            onBook={handleBookRide}
+          />
         </div>
       </div>
     </div>
