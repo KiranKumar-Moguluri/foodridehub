@@ -1,5 +1,6 @@
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import { useToast } from "../ui/use-toast";
+import { useEffect, useRef } from 'react';
 
 interface ManualLocationTabProps {
   apiKey: string;
@@ -12,12 +13,31 @@ export const ManualLocationTab = ({
   location,
   onLocationSelect,
 }: ManualLocationTabProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      // Debounce resize notifications
+      if (containerRef.current) {
+        containerRef.current.style.minHeight = '40px';
+      }
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <GooglePlacesAutocomplete
         apiKey={apiKey}
         selectProps={{
-          value: { label: location, value: location },
+          value: location ? { label: location, value: location } : null,
           onChange: onLocationSelect,
           placeholder: "Search for your location",
           className: "w-full",
@@ -30,6 +50,11 @@ export const ManualLocationTab = ({
               ...provided,
               position: 'absolute',
               zIndex: 1000,
+              width: '100%',
+            }),
+            control: (provided) => ({
+              ...provided,
+              minHeight: '40px',
             }),
           },
         }}
