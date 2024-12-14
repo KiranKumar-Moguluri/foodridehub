@@ -9,11 +9,11 @@ export const restaurantLocations = {
   },
   japantown: {
     address: "1581 Webster Street, San Francisco, CA 94115",
-    distance: "1.5 miles"
+    distance: "2.3 miles"
   },
   mission: {
     address: "2534 Mission Street, San Francisco, CA 94110",
-    distance: "0.5 miles"
+    distance: "1.7 miles"
   },
   hayes: {
     address: "432 Octavia Street, San Francisco, CA 94102",
@@ -21,22 +21,26 @@ export const restaurantLocations = {
   },
   marina: {
     address: "2001 Chestnut Street, San Francisco, CA 94123",
-    distance: "1.8 miles"
+    distance: "2.8 miles"
   },
   soma: {
     address: "1150 Howard Street, San Francisco, CA 94103",
-    distance: "2.5 miles"
+    distance: "1.5 miles"
   },
   northBeach: {
     address: "532 Columbus Avenue, San Francisco, CA 94133",
-    distance: "1.3 miles"
+    distance: "1.9 miles"
   },
   richmond: {
     address: "5812 Geary Boulevard, San Francisco, CA 94121",
-    distance: "3.0 miles"
+    distance: "4.2 miles"
   },
   embarcadero: {
     address: "1 Ferry Building, San Francisco, CA 94111",
-    distance: "2.8 miles"
+    distance: "1.4 miles"
+  },
+  chinatown: {
+    address: "965 Grant Avenue, San Francisco, CA 94108",
+    distance: "1.6 miles"
   }
 };
