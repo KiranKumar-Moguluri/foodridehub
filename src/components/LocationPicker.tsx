@@ -28,6 +28,7 @@ export const LocationPicker = ({
   const [apiKeyInput, setApiKeyInput] = useState("");
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [mountAutocomplete, setMountAutocomplete] = useState(false);
 
   useEffect(() => {
     const key = localStorage.getItem("GOOGLE_MAPS_API_KEY");
@@ -37,6 +38,19 @@ export const LocationPicker = ({
       setShowApiKeyInput(true);
     }
   }, []);
+
+  // Handle mounting/unmounting of autocomplete to prevent ResizeObserver errors
+  useEffect(() => {
+    if (isOpen && apiKey) {
+      // Delay mounting to ensure dialog is fully open
+      const timer = setTimeout(() => {
+        setMountAutocomplete(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setMountAutocomplete(false);
+    }
+  }, [isOpen, apiKey]);
 
   const handleLocationSelect = (selectedOption: any) => {
     const selectedLocation = selectedOption.label;
@@ -103,7 +117,7 @@ export const LocationPicker = ({
                 Save API Key
               </Button>
             </div>
-          ) : apiKey ? (
+          ) : apiKey && mountAutocomplete ? (
             <GooglePlacesAutocomplete
               apiKey={apiKey}
               selectProps={{
