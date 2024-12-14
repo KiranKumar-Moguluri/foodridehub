@@ -12,6 +12,12 @@ import {
 } from "./ui/dialog";
 import { useToast } from "./ui/use-toast";
 import { Input } from "./ui/input";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "./ui/tabs";
 
 interface LocationPickerProps {
   onLocationSelect: (location: string, coordinates?: { lat: number; lng: number }) => void;
@@ -30,6 +36,7 @@ export const LocationPicker = ({
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [mountAutocomplete, setMountAutocomplete] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("current");
 
   useEffect(() => {
     const key = localStorage.getItem("GOOGLE_MAPS_API_KEY");
@@ -67,6 +74,10 @@ export const LocationPicker = ({
               setLocation(address);
               onLocationSelect(address, { lat: latitude, lng: longitude });
               setIsOpen(false);
+              toast({
+                title: "Location Set",
+                description: "Your current location has been set successfully.",
+              });
             }
           } catch (error) {
             toast({
@@ -102,6 +113,10 @@ export const LocationPicker = ({
     setLocation(selectedLocation);
     onLocationSelect(selectedLocation);
     setIsOpen(false);
+    toast({
+      title: "Location Set",
+      description: "Your location has been set successfully.",
+    });
   };
 
   const handleSaveApiKey = () => {
@@ -130,10 +145,10 @@ export const LocationPicker = ({
           {location || "Select Location"}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Enter Your Location</DialogTitle>
-          {showApiKeyInput && (
+          <DialogTitle>Choose Your Location</DialogTitle>
+          {showApiKeyInput ? (
             <DialogDescription>
               Please enter your Google Maps API key to enable location search.
               You can get one from the{" "}
@@ -147,23 +162,32 @@ export const LocationPicker = ({
               </a>
               .
             </DialogDescription>
+          ) : (
+            <DialogDescription>
+              Select how you'd like to set your location
+            </DialogDescription>
           )}
         </DialogHeader>
-        <div className="space-y-4">
-          {showApiKeyInput ? (
-            <div className="space-y-2">
-              <Input
-                type="text"
-                placeholder="Enter your Google Maps API key"
-                value={apiKeyInput}
-                onChange={(e) => setApiKeyInput(e.target.value)}
-              />
-              <Button onClick={handleSaveApiKey} className="w-full">
-                Save API Key
-              </Button>
-            </div>
-          ) : (
-            <>
+        
+        {showApiKeyInput ? (
+          <div className="space-y-2">
+            <Input
+              type="text"
+              placeholder="Enter your Google Maps API key"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+            />
+            <Button onClick={handleSaveApiKey} className="w-full">
+              Save API Key
+            </Button>
+          </div>
+        ) : (
+          <Tabs defaultValue="current" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="current">Current Location</TabsTrigger>
+              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            </TabsList>
+            <TabsContent value="current" className="mt-4">
               <Button
                 variant="outline"
                 className="w-full"
@@ -173,6 +197,8 @@ export const LocationPicker = ({
                 <Crosshair className="w-4 h-4 mr-2" />
                 {isLoadingLocation ? "Getting location..." : "Use Current Location"}
               </Button>
+            </TabsContent>
+            <TabsContent value="manual" className="mt-4">
               {apiKey && mountAutocomplete && (
                 <GooglePlacesAutocomplete
                   apiKey={apiKey}
@@ -184,9 +210,9 @@ export const LocationPicker = ({
                   }}
                 />
               )}
-            </>
-          )}
-        </div>
+            </TabsContent>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
