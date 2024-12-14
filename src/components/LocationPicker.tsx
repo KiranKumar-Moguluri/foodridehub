@@ -38,6 +38,27 @@ export const LocationPicker = ({
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("current");
 
+  // Add ResizeObserver cleanup
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      // Debounce resize notifications
+      requestAnimationFrame(() => {
+        entries.forEach(() => {
+          // Handle resize if needed
+        });
+      });
+    });
+
+    const dialogContent = document.querySelector('.dialog-content');
+    if (dialogContent) {
+      resizeObserver.observe(dialogContent);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   useEffect(() => {
     const key = localStorage.getItem("GOOGLE_MAPS_API_KEY");
     if (key) {
@@ -145,7 +166,7 @@ export const LocationPicker = ({
           {location || "Select Location"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] dialog-content">
         <DialogHeader>
           <DialogTitle>Choose Your Location</DialogTitle>
           {showApiKeyInput ? (
@@ -200,15 +221,28 @@ export const LocationPicker = ({
             </TabsContent>
             <TabsContent value="manual" className="mt-4">
               {apiKey && mountAutocomplete && (
-                <GooglePlacesAutocomplete
-                  apiKey={apiKey}
-                  selectProps={{
-                    value: { label: location, value: location },
-                    onChange: handleLocationSelect,
-                    placeholder: "Search for your location",
-                    className: "w-full",
-                  }}
-                />
+                <div className="relative">
+                  <GooglePlacesAutocomplete
+                    apiKey={apiKey}
+                    selectProps={{
+                      value: { label: location, value: location },
+                      onChange: handleLocationSelect,
+                      placeholder: "Search for your location",
+                      className: "w-full",
+                      styles: {
+                        container: (provided) => ({
+                          ...provided,
+                          position: 'static',
+                        }),
+                        menu: (provided) => ({
+                          ...provided,
+                          position: 'absolute',
+                          zIndex: 1000,
+                        }),
+                      },
+                    }}
+                  />
+                </div>
               )}
             </TabsContent>
           </Tabs>
