@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Car } from "lucide-react";
 import {
@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { carTypes, calculateRidePrice } from "../data/restaurants";
+import { carTypes } from "../data/restaurants";
 
 interface RideBookingProps {
   distance: string;
@@ -17,7 +17,16 @@ interface RideBookingProps {
 
 export const RideBooking = ({ distance, onBook }: RideBookingProps) => {
   const [selectedCar, setSelectedCar] = useState("");
-  const price = calculateRidePrice(selectedCar, distance);
+  const [price, setPrice] = useState(0);
+
+  useEffect(() => {
+    if (selectedCar && distance) {
+      const numericDistance = parseFloat(distance.replace(/[^0-9.]/g, ''));
+      const basePrice = 2; // $2 per mile
+      const totalPrice = basePrice * numericDistance;
+      setPrice(totalPrice);
+    }
+  }, [selectedCar, distance]);
 
   return (
     <div className="space-y-4">
@@ -32,7 +41,7 @@ export const RideBooking = ({ distance, onBook }: RideBookingProps) => {
                 <Car className="w-4 h-4" />
                 <span>{car.name}</span>
                 <span className="text-muted-foreground">
-                  (${car.basePrice} + ${car.pricePerMile}/mile)
+                  (Base rate: $2/mile)
                 </span>
               </div>
             </SelectItem>
