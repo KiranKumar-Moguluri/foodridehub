@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { MapPin, Crosshair } from "lucide-react";
-import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
+import { MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "./ui/tabs";
+import { CurrentLocationTab } from "./location/CurrentLocationTab";
+import { ManualLocationTab } from "./location/ManualLocationTab";
 
 interface LocationPickerProps {
   onLocationSelect: (location: string, coordinates?: { lat: number; lng: number }) => void;
@@ -38,25 +39,17 @@ export const LocationPicker = ({
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("current");
 
-  // Add ResizeObserver cleanup
+  // Load saved location on mount
   useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      // Debounce resize notifications
-      requestAnimationFrame(() => {
-        entries.forEach(() => {
-          // Handle resize if needed
-        });
-      });
-    });
-
-    const dialogContent = document.querySelector('.dialog-content');
-    if (dialogContent) {
-      resizeObserver.observe(dialogContent);
+    const savedLocation = localStorage.getItem("savedLocation");
+    const savedCoordinates = localStorage.getItem("savedCoordinates");
+    if (savedLocation) {
+      setLocation(savedLocation);
+      onLocationSelect(
+        savedLocation,
+        savedCoordinates ? JSON.parse(savedCoordinates) : undefined
+      );
     }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
   }, []);
 
   useEffect(() => {
@@ -79,64 +72,15 @@ export const LocationPicker = ({
     }
   }, [isOpen, apiKey]);
 
-  const getCurrentLocation = () => {
-    setIsLoadingLocation(true);
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
-            );
-            const data = await response.json();
-            if (data.results && data.results[0]) {
-              const address = data.results[0].formatted_address;
-              setLocation(address);
-              onLocationSelect(address, { lat: latitude, lng: longitude });
-              setIsOpen(false);
-              toast({
-                title: "Location Set",
-                description: "Your current location has been set successfully.",
-              });
-            }
-          } catch (error) {
-            toast({
-              title: "Error",
-              description: "Failed to get your current location address",
-              variant: "destructive",
-            });
-          } finally {
-            setIsLoadingLocation(false);
-          }
-        },
-        (error) => {
-          toast({
-            title: "Error",
-            description: "Unable to get your location. Please check your browser permissions.",
-            variant: "destructive",
-          });
-          setIsLoadingLocation(false);
-        }
-      );
-    } else {
-      toast({
-        title: "Error",
-        description: "Geolocation is not supported by your browser",
-        variant: "destructive",
-      });
-      setIsLoadingLocation(false);
-    }
-  };
-
   const handleLocationSelect = (selectedOption: any) => {
     const selectedLocation = selectedOption.label;
     setLocation(selectedLocation);
+    localStorage.setItem("savedLocation", selectedLocation);
     onLocationSelect(selectedLocation);
     setIsOpen(false);
     toast({
       title: "Location Set",
-      description: "Your location has been set successfully.",
+      description: "Your location has been saved and set successfully.",
     });
   };
 
@@ -209,40 +153,21 @@ export const LocationPicker = ({
               <TabsTrigger value="manual">Manual Entry</TabsTrigger>
             </TabsList>
             <TabsContent value="current" className="mt-4">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={getCurrentLocation}
-                disabled={isLoadingLocation}
-              >
-                <Crosshair className="w-4 h-4 mr-2" />
-                {isLoadingLocation ? "Getting location..." : "Use Current Location"}
-              </Button>
+              <CurrentLocationTab
+                onLocationSelect={onLocationSelect}
+                apiKey={apiKey || ""}
+                setIsOpen={setIsOpen}
+                isLoadingLocation={isLoadingLocation}
+                setIsLoadingLocation={setIsLoadingLocation}
+              />
             </TabsContent>
             <TabsContent value="manual" className="mt-4">
               {apiKey && mountAutocomplete && (
-                <div className="relative">
-                  <GooglePlacesAutocomplete
-                    apiKey={apiKey}
-                    selectProps={{
-                      value: { label: location, value: location },
-                      onChange: handleLocationSelect,
-                      placeholder: "Search for your location",
-                      className: "w-full",
-                      styles: {
-                        container: (provided) => ({
-                          ...provided,
-                          position: 'static',
-                        }),
-                        menu: (provided) => ({
-                          ...provided,
-                          position: 'absolute',
-                          zIndex: 1000,
-                        }),
-                      },
-                    }}
-                  />
-                </div>
+                <ManualLocationTab
+                  apiKey={apiKey}
+                  location={location}
+                  onLocationSelect={handleLocationSelect}
+                />
               )}
             </TabsContent>
           </Tabs>
