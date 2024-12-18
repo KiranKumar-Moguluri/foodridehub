@@ -15,35 +15,56 @@ export const ManualLocationTab = ({
 }: ManualLocationTabProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    let animationFrameId: number;
+    
+    const initializeResizeObserver = () => {
+      if (!containerRef.current) return;
 
-    // Set initial height
-    if (containerRef.current) {
+      // Set initial height
       containerRef.current.style.minHeight = '40px';
-    }
 
-    // Mark component as mounted
+      // Create new ResizeObserver
+      resizeObserverRef.current = new ResizeObserver((entries) => {
+        // Cancel any pending animation frame
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+
+        // Schedule a new animation frame
+        animationFrameId = requestAnimationFrame(() => {
+          if (!containerRef.current) return;
+
+          entries.forEach(entry => {
+            if (entry.target === containerRef.current) {
+              containerRef.current.style.minHeight = '40px';
+            }
+          });
+        });
+      });
+
+      // Start observing
+      resizeObserverRef.current.observe(containerRef.current);
+    };
+
+    // Initialize observer and mark component as mounted
+    initializeResizeObserver();
     setIsComponentMounted(true);
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      // Batch updates using requestAnimationFrame
-      window.requestAnimationFrame(() => {
-        if (!containerRef.current) return;
-        
-        for (const entry of entries) {
-          if (entry.target === containerRef.current) {
-            containerRef.current.style.minHeight = '40px';
-          }
-        }
-      });
-    });
-
-    resizeObserver.observe(containerRef.current);
-
+    // Cleanup function
     return () => {
-      resizeObserver.disconnect();
+      // Cancel any pending animation frame
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      // Disconnect observer
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
+
       setIsComponentMounted(false);
     };
   }, []);
