@@ -39,6 +39,48 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
     ? calculateCombinedPrice(basePrice, distance, "food")
     : calculateFoodPrice(basePrice);
 
+  const renderPriceBreakdown = () => {
+    if (includeRide) {
+      // Combined price breakdown
+      const combined = priceCalculation as ReturnType<typeof calculateCombinedPrice>;
+      return (
+        <>
+          <div className="flex justify-between">
+            <span>Food Subtotal:</span>
+            <span>${combined.foodSubtotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Tax (13%):</span>
+            <span>${combined.foodTax.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Ride Cost:</span>
+            <span>${combined.rideSubtotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Ride Surcharge:</span>
+            <span>${combined.rideSurcharge.toFixed(2)}</span>
+          </div>
+        </>
+      );
+    } else {
+      // Food only price breakdown
+      const foodOnly = priceCalculation as ReturnType<typeof calculateFoodPrice>;
+      return (
+        <>
+          <div className="flex justify-between">
+            <span>Food Subtotal:</span>
+            <span>${foodOnly.subtotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Tax (13%):</span>
+            <span>${foodOnly.tax.toFixed(2)}</span>
+          </div>
+        </>
+      );
+    }
+  };
+
   return (
     <div
       className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
@@ -86,26 +128,7 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
             <div className="bg-gray-50 p-3 rounded-md mt-2">
               <h4 className="font-medium mb-2">Price Breakdown</h4>
               <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span>Food Subtotal:</span>
-                  <span>${priceCalculation.foodSubtotal?.toFixed(2) || "0.00"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tax (13%):</span>
-                  <span>${priceCalculation.foodTax?.toFixed(2) || "0.00"}</span>
-                </div>
-                {includeRide && (
-                  <>
-                    <div className="flex justify-between">
-                      <span>Ride Cost:</span>
-                      <span>${priceCalculation.rideSubtotal?.toFixed(2) || "0.00"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Ride Surcharge:</span>
-                      <span>${priceCalculation.rideSurcharge?.toFixed(2) || "0.00"}</span>
-                    </div>
-                  </>
-                )}
+                {renderPriceBreakdown()}
                 <div className="flex justify-between font-medium pt-1 border-t">
                   <span>Total:</span>
                   <span>${priceCalculation.total.toFixed(2)}</span>
