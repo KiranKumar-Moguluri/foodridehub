@@ -14,33 +14,37 @@ export const ManualLocationTab = ({
   onLocationSelect,
 }: ManualLocationTabProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isResizeObserverActive, setIsResizeObserverActive] = useState(false);
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    let rafId: number;
+    // Set initial height
+    if (containerRef.current) {
+      containerRef.current.style.minHeight = '40px';
+    }
+
+    // Mark component as mounted
+    setIsComponentMounted(true);
+
     const resizeObserver = new ResizeObserver((entries) => {
-      // Use requestAnimationFrame to batch resize notifications
-      if (!rafId) {
-        rafId = requestAnimationFrame(() => {
-          if (containerRef.current) {
+      // Batch updates using requestAnimationFrame
+      window.requestAnimationFrame(() => {
+        if (!containerRef.current) return;
+        
+        for (const entry of entries) {
+          if (entry.target === containerRef.current) {
             containerRef.current.style.minHeight = '40px';
           }
-          rafId = 0;
-        });
-      }
+        }
+      });
     });
 
-    setIsResizeObserverActive(true);
     resizeObserver.observe(containerRef.current);
 
     return () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
       resizeObserver.disconnect();
-      setIsResizeObserverActive(false);
+      setIsComponentMounted(false);
     };
   }, []);
 
@@ -50,7 +54,7 @@ export const ManualLocationTab = ({
       ref={containerRef}
       style={{ minHeight: '40px' }}
     >
-      {isResizeObserverActive && (
+      {isComponentMounted && (
         <GooglePlacesAutocomplete
           apiKey={apiKey}
           selectProps={{
