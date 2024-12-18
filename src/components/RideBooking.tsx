@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { carTypes } from "../data/restaurants";
+import { useToast } from "./ui/use-toast";
 
 interface RideBookingProps {
   distance: string;
@@ -18,15 +19,37 @@ interface RideBookingProps {
 export const RideBooking = ({ distance, onBook }: RideBookingProps) => {
   const [selectedCar, setSelectedCar] = useState("");
   const [price, setPrice] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (selectedCar && distance) {
       const numericDistance = parseFloat(distance.replace(/[^0-9.]/g, ''));
-      const basePrice = 2; // $2 per mile
-      const totalPrice = basePrice * numericDistance;
-      setPrice(totalPrice);
+      const carType = carTypes.find(car => car.id === selectedCar);
+      if (carType) {
+        const basePrice = carType.pricePerMile;
+        const totalPrice = (basePrice * numericDistance) + carType.basePrice;
+        setPrice(totalPrice);
+      }
     }
   }, [selectedCar, distance]);
+
+  const handleBooking = () => {
+    if (!selectedCar) {
+      toast({
+        title: "Select a Car",
+        description: "Please select a car type before booking",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedCarType = carTypes.find(car => car.id === selectedCar);
+    toast({
+      title: "Ride Booked",
+      description: `Your ${selectedCarType?.name} has been booked. Total: $${price.toFixed(2)}`,
+    });
+    onBook();
+  };
 
   return (
     <div className="space-y-4">
@@ -41,7 +64,7 @@ export const RideBooking = ({ distance, onBook }: RideBookingProps) => {
                 <Car className="w-4 h-4" />
                 <span>{car.name}</span>
                 <span className="text-muted-foreground">
-                  (Base rate: $2/mile)
+                  (${car.pricePerMile}/mile + ${car.basePrice} base)
                 </span>
               </div>
             </SelectItem>
@@ -59,7 +82,7 @@ export const RideBooking = ({ distance, onBook }: RideBookingProps) => {
       <Button
         variant="secondary"
         className="w-full flex items-center justify-center gap-2"
-        onClick={onBook}
+        onClick={handleBooking}
         disabled={!selectedCar}
       >
         <Car className="w-4 h-4" />
