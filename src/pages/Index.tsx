@@ -5,16 +5,46 @@ import { restaurants } from "../data/restaurants";
 import { Search, Car } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { LocationPicker } from "@/components/LocationPicker";
+import { ServiceSelection } from "@/components/ServiceSelection";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(
     null
   );
   const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredRestaurants = restaurants.filter((restaurant) =>
-    restaurant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const [currentLocation, setCurrentLocation] = useState("");
+  const [selectedService, setSelectedService] = useState<"food" | "ride" | null>(
+    null
   );
+  const { toast } = useToast();
+
+  const filteredRestaurants = restaurants.filter(
+    (restaurant) =>
+      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      parseFloat(restaurant.location.distance.replace(/[^0-9.]/g, "")) <= 8
+  );
+
+  const handleLocationSelect = (location: string) => {
+    setCurrentLocation(location);
+    toast({
+      title: "Location Set",
+      description: "You can now proceed with your order or booking.",
+    });
+  };
+
+  const handleServiceSelect = (service: "food" | "ride") => {
+    if (!currentLocation) {
+      toast({
+        title: "Location Required",
+        description: "Please set your current location first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSelectedService(service);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,34 +53,58 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl md:text-3xl font-bold">Food & Ride</h1>
-            <Button variant="secondary" className="flex items-center gap-2">
-              <Car className="w-4 h-4" />
-              Book a Ride
-            </Button>
-          </div>
-          <div className="relative max-w-2xl mx-auto">
-            <Input
-              type="text"
-              placeholder="Search for restaurants or dishes..."
-              className="w-full pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/70"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="absolute left-3 top-2.5 text-white/70" />
           </div>
         </div>
       </header>
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-semibold mb-6">Popular Restaurants</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRestaurants.map((restaurant) => (
-            <RestaurantCard
-              key={restaurant.id}
-              restaurant={restaurant}
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Step 1: Location Selection */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Your Location</h2>
+            <LocationPicker
+              onLocationSelect={handleLocationSelect}
+              defaultLocation={currentLocation}
             />
-          ))}
+          </div>
+
+          {/* Step 2: Service Selection */}
+          {currentLocation && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">Select a Service</h2>
+              <ServiceSelection onServiceSelect={handleServiceSelect} />
+            </div>
+          )}
+
+          {/* Step 3: Restaurant List (if food service selected) */}
+          {selectedService === "food" && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-semibold">
+                  Restaurants Within 8 Miles
+                </h2>
+                <div className="relative w-64">
+                  <Input
+                    type="text"
+                    placeholder="Search restaurants..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                  <Search className="absolute left-3 top-2.5 text-gray-400" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredRestaurants.map((restaurant) => (
+                  <RestaurantCard
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { useToast } from "./ui/use-toast";
 import { RideBooking } from "./RideBooking";
+import { calculateFoodPrice, calculateCombinedPrice } from "../utils/priceCalculations";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -15,6 +16,7 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [includeRide, setIncludeRide] = useState(false);
 
   const handleBookRide = () => {
     if (!selectedLocation) {
@@ -27,14 +29,19 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
     }
     
     navigate(`/restaurant/${restaurant.id}`, {
-      state: { selectedLocation }
+      state: { selectedLocation, includeRide }
     });
   };
+
+  const distance = parseFloat(restaurant.location.distance.replace(/[^0-9.]/g, ""));
+  const basePrice = restaurant.menu[0]?.price || 0;
+  const priceCalculation = includeRide
+    ? calculateCombinedPrice(basePrice, distance, "food")
+    : calculateFoodPrice(basePrice);
 
   return (
     <div
       className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
-      onClick={() => navigate(`/restaurant/${restaurant.id}`)}
     >
       <img
         src={restaurant.image}
@@ -52,7 +59,7 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
         <p className="text-gray-600 text-sm mb-2">{restaurant.description}</p>
         <div className="flex items-center text-sm text-gray-500 mb-2">
           <MapPin className="w-4 h-4 mr-1" />
-          <span>{restaurant.location.distance} away</span>
+          <span>{restaurant.location.distance}</span>
         </div>
         <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
           <span>{restaurant.deliveryTime}</span>
@@ -63,6 +70,49 @@ export const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
             onLocationSelect={setSelectedLocation}
             defaultLocation={selectedLocation}
           />
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="checkbox"
+              id={`includeRide-${restaurant.id}`}
+              checked={includeRide}
+              onChange={(e) => setIncludeRide(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <label htmlFor={`includeRide-${restaurant.id}`} className="text-sm">
+              Include Ride Service
+            </label>
+          </div>
+          {selectedLocation && (
+            <div className="bg-gray-50 p-3 rounded-md mt-2">
+              <h4 className="font-medium mb-2">Price Breakdown</h4>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span>Food Subtotal:</span>
+                  <span>${priceCalculation.foodSubtotal?.toFixed(2) || "0.00"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tax (13%):</span>
+                  <span>${priceCalculation.foodTax?.toFixed(2) || "0.00"}</span>
+                </div>
+                {includeRide && (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Ride Cost:</span>
+                      <span>${priceCalculation.rideSubtotal?.toFixed(2) || "0.00"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ride Surcharge:</span>
+                      <span>${priceCalculation.rideSurcharge?.toFixed(2) || "0.00"}</span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between font-medium pt-1 border-t">
+                  <span>Total:</span>
+                  <span>${priceCalculation.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          )}
           <RideBooking 
             distance={restaurant.location.distance}
             onBook={handleBookRide}
