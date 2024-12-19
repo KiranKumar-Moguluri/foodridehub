@@ -26,10 +26,16 @@ export const CurrentLocationTab = ({
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
-            );
+            // Ensure proper URL formatting by removing any potential trailing colons
+            const baseUrl = "https://maps.googleapis.com";
+            const endpoint = "/maps/api/geocode/json";
+            const url = new URL(endpoint, baseUrl);
+            url.searchParams.append("latlng", `${latitude},${longitude}`);
+            url.searchParams.append("key", apiKey);
+
+            const response = await fetch(url.toString());
             const data = await response.json();
+            
             if (data.results && data.results[0]) {
               const address = data.results[0].formatted_address;
               localStorage.setItem("savedLocation", address);
