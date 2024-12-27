@@ -1,5 +1,4 @@
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
-import { useToast } from "../ui/use-toast";
 import { useEffect, useRef, useState } from 'react';
 
 interface ManualLocationTabProps {
@@ -15,56 +14,44 @@ export const ManualLocationTab = ({
 }: ManualLocationTabProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const rafRef = useRef<number>();
 
   useEffect(() => {
-    let animationFrameId: number;
-    
-    const initializeResizeObserver = () => {
-      if (!containerRef.current) return;
+    setIsComponentMounted(true);
 
-      // Set initial height
+    if (containerRef.current) {
       containerRef.current.style.minHeight = '40px';
 
-      // Create new ResizeObserver
-      resizeObserverRef.current = new ResizeObserver((entries) => {
+      const handleResize = (entries: ResizeObserverEntry[]) => {
         // Cancel any pending animation frame
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
         }
 
         // Schedule a new animation frame
-        animationFrameId = requestAnimationFrame(() => {
-          if (!containerRef.current) return;
-
+        rafRef.current = requestAnimationFrame(() => {
           entries.forEach(entry => {
-            if (entry.target === containerRef.current) {
+            if (entry.target === containerRef.current && containerRef.current) {
               containerRef.current.style.minHeight = '40px';
             }
           });
         });
-      });
+      };
 
-      // Start observing
-      resizeObserverRef.current.observe(containerRef.current);
-    };
-
-    // Initialize observer and mark component as mounted
-    initializeResizeObserver();
-    setIsComponentMounted(true);
+      // Create new ResizeObserver
+      observerRef.current = new ResizeObserver(handleResize);
+      observerRef.current.observe(containerRef.current);
+    }
 
     // Cleanup function
     return () => {
-      // Cancel any pending animation frame
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
-
-      // Disconnect observer
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
-
       setIsComponentMounted(false);
     };
   }, []);
