@@ -1,3 +1,4 @@
+
 import { Button } from "../ui/button";
 import { Crosshair } from "lucide-react";
 import { useToast } from "../ui/use-toast";
@@ -26,10 +27,7 @@ export const CurrentLocationTab = ({
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            // Ensure proper URL formatting by removing any potential trailing colons
-            const baseUrl = "https://maps.googleapis.com";
-            const endpoint = "/maps/api/geocode/json";
-            const url = new URL(endpoint, baseUrl);
+            const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
             url.searchParams.append("latlng", `${latitude},${longitude}`);
             url.searchParams.append("key", apiKey);
 
@@ -46,11 +44,14 @@ export const CurrentLocationTab = ({
                 title: "Location Set",
                 description: "Your current location has been saved and set successfully.",
               });
+            } else {
+              throw new Error("No results found");
             }
           } catch (error) {
+            console.error("Geocoding error:", error);
             toast({
               title: "Error",
-              description: "Failed to get your current location address",
+              description: "Failed to get your current location address. Please try again.",
               variant: "destructive",
             });
           } finally {
@@ -58,6 +59,7 @@ export const CurrentLocationTab = ({
           }
         },
         (error) => {
+          console.error("Geolocation error:", error);
           toast({
             title: "Error",
             description: "Unable to get your location. Please check your browser permissions.",
